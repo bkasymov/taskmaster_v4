@@ -5,6 +5,8 @@ name = "pypi"
 
 [packages]
 logger = "*"
+schema = "*"
+pyyaml = "*"
 
 [dev-packages]
 
