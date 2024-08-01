@@ -1,0 +1,54 @@
+programs:
+  # infinite_yes:
+  #   cmd: "yes"
+  #   numprocs: 1
+  #   umask: "022"
+  #   workingdir: .
+  #   autostart: true
+  #   autorestart: always
+  #   exitcodes:
+  #     - 0
+  #   startretries: 3
+  #   starttime: 1
+  #   stopsignal: TERM
+  #   stoptime: 10
+  #   stdout: result/infinite_yes.stdout
+  #   stderr: result/infinite_yes.stderr
+  #   env:
+  #     CUSTOM_VAR: "hello"
+
+  list_tmp:
+    cmd: "ls -la /tmp"
+    numprocs: 2
+    umask: "022"
+    workingdir: .
+    autostart: true
+    autorestart: never
+    exitcodes:
+      - 0
+    startretries: 1
+    starttime: 5
+    stopsignal: TERM
+    stoptime: 5
+    stdout: result/list_tmp.stdout
+    stderr: result/list_tmp.stderr
+
+  echo_test:
+    cmd: "echo 'Hello, Taskmaster!'"
+    numprocs: 3
+    umask: "027"
+    workingdir: .
+    autostart: false
+    autorestart: unexpected
+    exitcodes:
+      - 0
+      - 1
+    startretries: 2
+    starttime: 1
+    stopsignal: HUP
+    stoptime: 3
+    stdout: result/echo_test.stdout
+    stderr: result/echo_test.stderr
+    env:
+      MESSAGE: "Custom message"
+      DEBUG: "true"
