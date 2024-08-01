@@ -12,7 +12,6 @@ class ControlShell(cmd.Cmd):
         self.taskmaster = taskmaster
 
     def do_status(self, arg):
-        """Show the status of all programs"""
         status = self.taskmaster.status()
         for program_name, processes in status.items():
             print(f"{program_name}:")
@@ -24,7 +23,6 @@ class ControlShell(cmd.Cmd):
                 print(f"    Uptime: {process['uptime']} seconds")
 
     def do_start(self, arg):
-        """Start a program: start <program_name>"""
         if not arg:
             print("Please specify a program name")
             return
@@ -32,7 +30,6 @@ class ControlShell(cmd.Cmd):
         self._print_program_status(arg)
 
     def do_stop(self, arg):
-        """Stop a program: stop <program_name>"""
         if not arg:
             print("Please specify a program name")
             return
@@ -40,7 +37,6 @@ class ControlShell(cmd.Cmd):
         self._print_program_status(arg)
 
     def do_restart(self, arg):
-        """Restart a program: restart <program_name>"""
         if not arg:
             print("Please specify a program name")
             return
@@ -48,22 +44,18 @@ class ControlShell(cmd.Cmd):
         self._print_program_status(arg)
 
     def do_reload(self, arg):
-        """Reload the configuration file"""
         self.taskmaster.reload_config()
         print("Configuration reloaded. Current status:")
         self.do_status(arg)
 
     def do_quit(self, arg):
-        """Quit the Taskmaster control shell"""
         print("Exiting Taskmaster...")
         return True
 
     def do_exit(self, arg):
-        """Exit the Taskmaster control shell"""
         return self.do_quit(arg)
 
     def _print_program_status(self, program_name):
-        """Helper method to print status of a specific program"""
         status = self.taskmaster.status()
         if program_name in status:
             print(f"Status of {program_name}:")

@@ -5,6 +5,7 @@ from config_parser import ConfigParser
 from process_manager import ProcessManager
 from control_shell import ControlShell
 from logger import setup_logger
+import threading
 
 
 class Taskmaster:
@@ -37,7 +38,7 @@ class Taskmaster:
                 self.process_manager.check_and_restart()
                 time.sleep(1)
 
-        import threading
+        
 
         checker_thread = threading.Thread(target=check_processes)
         checker_thread.daemon = True
