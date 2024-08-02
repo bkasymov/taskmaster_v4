@@ -2,7 +2,6 @@ import subprocess
 import os
 import signal
 import time
-import psutil
 
 
 class ProcessInfo:
@@ -83,6 +82,7 @@ class ProcessManager:
     def restart_program(self, program_name):
         self.stop_program(program_name)
         self.start_program(program_name)
+
     
     def get_status(self):
         status = {}
@@ -90,27 +90,19 @@ class ProcessManager:
             status[program_name] = []
             for process_info in process_infos:
                 try:
-                    proc = psutil.Process(process_info.pid)
-                    status_text = "finished" if not proc.is_running() else "running"
-                    status[program_name].append(
-                        {
-                            "pid": process_info.pid,
-                            "cmd": process_info.cmd,
-                            "status": status_text,
-                            "restarts": process_info.restarts,
-                            "uptime": int(time.time() - process_info.start_time),
-                        }
-                    )
-                except psutil.NoSuchProcess:
-                    status[program_name].append(
-                        {
-                            "pid": process_info.pid,
-                            "cmd": process_info.cmd,
-                            "status": "finished",
-                            "restarts": process_info.restarts,
-                            "uptime": 0,
-                        }
-                    )
+                    os.kill(process_info.pid, 0)
+                    status_text = "running"
+                except OSError:
+                    status_text = "finished"
+                status[program_name].append(
+                    {
+                        "pid": process_info.pid,
+                        "cmd": process_info.cmd,
+                        "status": status_text,
+                        "restarts": process_info.restarts,
+                        "uptime": int(time.time() - process_info.start_time),
+                    }
+                )
         return status
 
     def update_config(self, new_config):
@@ -132,23 +124,17 @@ class ProcessManager:
                 self.restart_program(program_name)
 
         self.config = new_config
-
+    
     def check_and_restart(self):
         for program_name, process_infos in self.processes.items():
             program_config = self.config["programs"][program_name]
             for i, process_info in enumerate(process_infos):
                 try:
-                    proc = psutil.Process(process_info.pid)
-                    if not proc.is_running():
-                        if program_config["autorestart"] == "always" or (
-                            program_config["autorestart"] == "unexpected"
-                            and proc.returncode() not in program_config["exitcodes"]
-                        ):
-                            self._restart_process(program_name, i)
-                except psutil.NoSuchProcess:
+                    os.kill(process_info.pid, 0)  # проверяем, работает ли процесс
+                except OSError:
                     if (
-                        program_config["autorestart"] == "always"
-                        or program_config["autorestart"] == "unexpected"
+                            program_config["autorestart"] == "always"
+                            or program_config["autorestart"] == "unexpected"
                     ):
                         self._restart_process(program_name, i)
 

@@ -17,10 +17,43 @@ class Taskmaster:
         self.process_manager = ProcessManager(self.config, self.logger)
         self.control_shell = ControlShell(self)
 
+    def compare_configs(self, old_config, new_config):
+        old_programs = set(old_config["programs"].keys())
+        new_programs = set(new_config["programs"].keys())
+        
+        added_programs = new_programs - old_programs
+        removed_programs = old_programs - new_programs
+        common_programs = old_programs & new_programs
+        
+        if added_programs:
+            print("Added programs:")
+            for program_name in added_programs:
+                print(f"  {program_name}")
+        
+        if removed_programs:
+            print("Removed programs:")
+            for program_name in removed_programs:
+                print(f"  {program_name}")
+        
+        for program in common_programs:
+            if old_config["programs"][program] != new_config["programs"][program]:
+                print(f"Changed program: {program}")
+                old_program_config = old_config["programs"][program]
+                new_program_config = new_config["programs"][program]
+                for key in old_program_config.keys():
+                    if old_program_config[key] != new_program_config.get(key):
+                        print(f"  {key} changed from {old_program_config[key]} to {new_program_config.get(key)}")
+                for key in new_program_config.keys():
+                    if key not in old_program_config:
+                        print(f"  {key} added with value {new_program_config[key]}")
+
     def reload_config(self):
+        old_config = self.config
         try:
             new_config = self.config_parser.parse()
+            self.compare_configs(old_config, new_config)
             self.process_manager.update_config(new_config)
+            self.config = new_config
             self.logger.info("Configuration reloaded successfully")
         except Exception as e:
             self.logger.error(f"Failed to reload configuration: {e}")
