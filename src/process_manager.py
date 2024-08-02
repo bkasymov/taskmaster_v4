@@ -83,7 +83,7 @@ class ProcessManager:
     def restart_program(self, program_name):
         self.stop_program(program_name)
         self.start_program(program_name)
-
+    
     def get_status(self):
         status = {}
         for program_name, process_infos in self.processes.items():
@@ -91,11 +91,12 @@ class ProcessManager:
             for process_info in process_infos:
                 try:
                     proc = psutil.Process(process_info.pid)
+                    status_text = "finished" if not proc.is_running() else "running"
                     status[program_name].append(
                         {
                             "pid": process_info.pid,
                             "cmd": process_info.cmd,
-                            "status": "running" if proc.is_running() else "stopped",
+                            "status": status_text,
                             "restarts": process_info.restarts,
                             "uptime": int(time.time() - process_info.start_time),
                         }
@@ -105,7 +106,7 @@ class ProcessManager:
                         {
                             "pid": process_info.pid,
                             "cmd": process_info.cmd,
-                            "status": "stopped",
+                            "status": "finished",
                             "restarts": process_info.restarts,
                             "uptime": 0,
                         }

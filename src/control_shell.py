@@ -1,4 +1,5 @@
 import cmd
+from prettytable import PrettyTable
 
 
 class ControlShell(cmd.Cmd):
@@ -10,24 +11,36 @@ class ControlShell(cmd.Cmd):
     def __init__(self, taskmaster):
         super().__init__()
         self.taskmaster = taskmaster
-
+    
     def do_status(self, arg):
         status = self.taskmaster.status()
-        for program_name, processes in status.items():
-            print(f"{program_name}:")
-            for process in processes:
-                print(f"    PID {process['pid']}:")
-                print(f"    Command: {process['cmd']}")
-                print(f"    Status: {process['status']}")
-                print(f"    Restarts: {process['restarts']}")
-                print(f"    Uptime: {process['uptime']} seconds")
-
+        config_programs = set(self.taskmaster.config["programs"].keys())
+        
+        table = PrettyTable()
+        table.field_names = ["Program", "PID", "Command", "Status", "Restarts", "Uptime"]
+        table.align["Program"] = "l"  # выравнивание по левому краю для столбца "Program"
+        
+        for program_name in config_programs:
+            if program_name in status:
+                for process in status[program_name]:
+                    table.add_row([program_name, process['pid'], process['cmd'], process['status'], process['restarts'],
+                                   f"{process['uptime']} seconds"])
+            else:
+                table.add_row([program_name, "N/A", "N/A", "not started", "N/A", "N/A"])
+        print(table)
+    
     def do_start(self, arg):
         if not arg:
-            print("Please specify a program name")
+            print("Please specify a program name or 'all' to start all programs")
             return
-        self.taskmaster.start_program(arg)
-        self._print_program_status(arg)
+        if arg == 'all':
+            status = self.taskmaster.status()
+            for program_name in status.keys():
+                self.taskmaster.start_program(program_name)
+                self._print_program_status(program_name)
+        else:
+            self.taskmaster.start_program(arg)
+            self._print_program_status(arg)
 
     def do_stop(self, arg):
         if not arg:
@@ -54,16 +67,16 @@ class ControlShell(cmd.Cmd):
 
     def do_exit(self, arg):
         return self.do_quit(arg)
-
+    
     def _print_program_status(self, program_name):
         status = self.taskmaster.status()
         if program_name in status:
             print(f"Status of {program_name}:")
+            table = PrettyTable()
+            table.field_names = ["Program", "PID", "Command", "Status", "Restarts", "Uptime"]
             for process in status[program_name]:
-                print(f"  PID {process['pid']}:")
-                print(f"    Command: {process['cmd']}")
-                print(f"    Status: {process['status']}")
-                print(f"    Restarts: {process['restarts']}")
-                print(f"    Uptime: {process['uptime']} seconds")
+                table.add_row([program_name, process['pid'], process['cmd'], process['status'], process['restarts'],
+                               f"{process['uptime']} seconds"])
+            print(table)
         else:
             print(f"Program {program_name} not found")
