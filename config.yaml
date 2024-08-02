@@ -1,21 +1,21 @@
 programs:
-  # infinite_yes:
-  #   cmd: "yes"
-  #   numprocs: 1
-  #   umask: "022"
-  #   workingdir: .
-  #   autostart: true
-  #   autorestart: always
-  #   exitcodes:
-  #     - 0
-  #   startretries: 3
-  #   starttime: 1
-  #   stopsignal: TERM
-  #   stoptime: 10
-  #   stdout: result/infinite_yes.stdout
-  #   stderr: result/infinite_yes.stderr
-  #   env:
-  #     CUSTOM_VAR: "hello"
+#   infinite_yes:
+#     cmd: "yes"
+#     numprocs: 1
+#     umask: "022"
+#     workingdir: .
+#     autostart: true
+#     autorestart: always
+#     exitcodes:
+#       - 0
+#     startretries: 3
+#     starttime: 1
+#     stopsignal: TERM
+#     stoptime: 10
+#     stdout: result/infinite_yes.stdout
+#     stderr: result/infinite_yes.stderr
+#     env:
+#       CUSTOM_VAR: "hello"
 
   list_tmp:
     cmd: "ls -la /tmp"
@@ -34,7 +34,7 @@ programs:
     stderr: result/list_tmp.stderr
 
   echo_test:
-    cmd: "echo 'Hello, Taskmaster!'"
+    cmd: "echo 'Hello, Bekha!!!!!'"
     numprocs: 3
     umask: "027"
     workingdir: .

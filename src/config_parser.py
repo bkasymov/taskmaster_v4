@@ -34,7 +34,7 @@ class ConfigParser:
                         "stopsignal": And(
                             str,
                             lambda s: s
-                            in ("TERM", "HUP", "INT", "QUIT", "KILL", "USR1", "USR2"),
+                            in ("TERM", "HUP", "INT", "QUIT", "KILL"),
                         ),
                         "stoptime": And(int, lambda n: n > 0),
                         "stdout": str,
