@@ -34,7 +34,7 @@ programs:
     stderr: result/list_tmp.stderr
 
   echo_test:
-    cmd: "echo 'Hello, Bekha!!!!!'"
+    cmd: "echo 'Hello, Bekha'"
     numprocs: 3
     umask: "027"
     workingdir: .
