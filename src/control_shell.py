@@ -77,7 +77,16 @@ class ControlShell(cmd.Cmd):
     def do_start(self, arg):
         if not arg:
             print("Please specify a program name or 'all' to start all programs")
+            print("Please specify a program name or 'all' to start all programs")
             return
+        if arg == 'all':
+            status = self.taskmaster.status()
+            for program_name in status.keys():
+                self.taskmaster.start_program(program_name)
+                self._print_program_status(program_name)
+        else:
+            self.taskmaster.start_program(arg)
+            self._print_program_status(arg)
         if arg == 'all':
             status = self.taskmaster.status()
             for program_name in status.keys():
@@ -113,18 +122,23 @@ class ControlShell(cmd.Cmd):
     def do_exit(self, arg):
         return self.do_quit(arg)
     
+    
     def _print_program_status(self, program_name):
         status = self.taskmaster.status()
         if program_name in status:
             print(f"Status of {program_name}:")
             table = PrettyTable()
             table.field_names = ["Program", "PID", "Command", "Status", "Restarts", "Uptime"]
+            table = PrettyTable()
+            table.field_names = ["Program", "PID", "Command", "Status", "Restarts", "Uptime"]
             for process in status[program_name]:
                 table.add_row([program_name, process['pid'], process['cmd'], process['status'], process['restarts'],
                                f"{process['uptime']} seconds"])
             print(table)
+                table.add_row([program_name, process['pid'], process['cmd'], process['status'], process['restarts'],
+                               f"{process['uptime']} seconds"])
+            print(table)
         else:
-            print(f"Program {program_name} not found")
     
     def signal_handler(self, signum, frame):
         print("\nReceived SIGINT, stopping all programs and exiting...")
