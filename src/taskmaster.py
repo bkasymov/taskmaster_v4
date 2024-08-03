@@ -16,6 +16,20 @@ class Taskmaster:
         self.config = self.config_parser.parse()
         self.process_manager = ProcessManager(self.config, self.logger)
         self.control_shell = ControlShell(self)
+    
+    def stop_all_programs(self):
+        for program_name in self.config["programs"]:
+            self.stop_program(program_name)
+    
+    def run_without_shell(self):
+        """
+        Run Taskmaster without control shell
+        :return:
+        """
+        self.process_manager.start_initial_processes()
+        while True:
+            self.process_manager.check_and_restart()
+            time.sleep(1)
 
     def compare_configs(self, old_config, new_config):
         old_programs = set(old_config["programs"].keys())

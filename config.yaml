@@ -20,21 +20,21 @@ programs:
   list_tmp:
     cmd: "ls -la /tmp"
     numprocs: 2
-    umask: "022"
+    umask: "000"
     workingdir: .
     autostart: true
     autorestart: never
     exitcodes:
       - 0
     startretries: 1
-    starttime: 5
+    starttime: 1
     stopsignal: TERM
     stoptime: 5
     stdout: result/list_tmp.stdout
     stderr: result/list_tmp.stderr
 
   echo_test:
-    cmd: "echo 'Hello, Bekha'"
+    cmd: "echo 'Hello, Bekha!!!'"
     numprocs: 3
     umask: "027"
     workingdir: .

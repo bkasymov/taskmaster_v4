@@ -1,3 +1,4 @@
+import atexit
 import subprocess
 import os
 import signal
@@ -18,6 +19,17 @@ class ProcessManager:
         self.config = config
         self.logger = logger
         self.processes = {}
+        self.subprocesses = []
+        atexit.register(self.cleanup)
+    
+    def cleanup(self):
+        for process in self.subprocesses:
+            if process.poll() is None:
+                process.terminate()
+                try:
+                    process.wait(timeout=0.5)  # Ожидаем завершения подпроцесса
+                except subprocess.TimeoutExpired:
+                    process.kill()
 
     def start_initial_processes(self):
         for program_name, program_config in self.config["programs"].items():
@@ -34,21 +46,22 @@ class ProcessManager:
                 ProcessInfo(process.pid, program_config["cmd"], program_config)
             )
         self.logger.info(f"Started program: {program_name}")
-
+    
     def _start_process(self, program_name, program_config):
         env = os.environ.copy()
         env.update(program_config.get("env", {}))
-
-        process = subprocess.Popen(
-            program_config["cmd"],
-            shell=True,
-            stdout=open(program_config["stdout"], "a"),
-            stderr=open(program_config["stderr"], "a"),
-            env=env,
-            cwd=program_config["workingdir"],
-            preexec_fn=lambda: os.umask(int(program_config["umask"], 8)),
-        )
-
+        
+        with open(program_config["stdout"], "w") as stdout, open(program_config["stderr"], "w") as stderr:
+            process = subprocess.Popen(
+                program_config["cmd"],
+                shell=True,
+                stdout=stdout,
+                stderr=stderr,
+                env=env,
+                cwd=program_config["workingdir"],
+                preexec_fn=lambda: os.umask(int(program_config["umask"], 8)),
+            )
+        
         self.logger.info(f"Started process {process.pid} for program {program_name}")
         return process
 
