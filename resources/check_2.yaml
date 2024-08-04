@@ -1,0 +1,30 @@
+# Test Configuration 2
+#
+# This configuration tests:
+# 1. Environment variable setting
+# 2. Output redirection to files and /dev/null
+#
+# How to test:
+# 1. Start Taskmaster with this configuration
+# 2. Check /tmp/env_test.stdout for TEST_VAR and modified PATH
+# 3. Verify that there's no output file for dev_null_test
+
+programs:
+  env_test:
+    cmd: "env"
+    numprocs: 1
+    autostart: true
+    autorestart: never
+    stdout: /tmp/env_test.stdout
+    stderr: /tmp/env_test.stderr
+    env:
+      TEST_VAR: "Hello from Taskmaster"
+      PATH: "/usr/local/bin:/usr/bin:/bin"
+
+  dev_null_test:
+    cmd: "echo 'This should not be seen'"
+    numprocs: 1
+    autostart: true
+    autorestart: never
+    stdout: /dev/null
+    stderr: /dev/null

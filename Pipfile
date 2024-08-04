@@ -8,6 +8,7 @@ logger = "*"
 schema = "*"
 pyyaml = "*"
 prettytable = "*"
+pytest = "*"
 
 [dev-packages]
 

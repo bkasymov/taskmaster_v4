@@ -1,0 +1,27 @@
+# Test Configuration 5
+#
+# This configuration tests:
+# 1. Graceful stop with SIGTERM
+# 2. Force kill after timeout
+#
+# How to test:
+# 1. Start Taskmaster with this configuration
+# 2. Try to stop 'graceful_stop' and check that it stops after about 3 seconds
+# 3. Try to stop 'force_kill' and check that it's killed after 2 seconds
+
+programs:
+  graceful_stop:
+    cmd: "python3 -c 'import signal, time; signal.signal(signal.SIGTERM, lambda x,y: time.sleep(3)); time.sleep(300)'"
+    numprocs: 1
+    autostart: true
+    autorestart: never
+    stopsignal: TERM
+    stoptime: 5
+
+  force_kill:
+    cmd: "python3 -c 'import signal, time; signal.signal(signal.SIGTERM, signal.SIG_IGN); time.sleep(300)'"
+    numprocs: 1
+    autostart: true
+    autorestart: never
+    stopsignal: TERM
+    stoptime: 2

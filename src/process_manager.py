@@ -1,3 +1,5 @@
+import atexit
+import logging
 import subprocess
 import os
 import signal
@@ -5,7 +7,10 @@ import time
 
 
 class ProcessInfo:
-    def __init__(self, pid, cmd, config):
+    """
+    Class to store information about a process
+    """
+    def __init__(self, pid: int, cmd: str, config: dict):
         self.pid = pid
         self.cmd = cmd
         self.config = config
@@ -14,17 +19,49 @@ class ProcessInfo:
 
 
 class ProcessManager:
-    def __init__(self, config, logger):
+    """
+    Class to manage processes
+    """
+    def __init__(self, config: dict, logger: logging.Logger):
+        """
+        Initialize the ProcessManager
+        :param config:
+        :param logger:
+        """
         self.config = config
         self.logger = logger
         self.processes = {}
+        self.subprocesses = []
+        atexit.register(self.cleanup)
+    
+    def cleanup(self):
+        """
+        Cleanup function to stop all processes
+        :return:
+        """
+        for process in self.subprocesses:
+            if process.poll() is None:
+                process.terminate()
+                try:
+                    process.wait(timeout=0.5)
+                except subprocess.TimeoutExpired:
+                    process.kill()
 
     def start_initial_processes(self):
+        """
+        Start all programs that have autostart set to True
+        :return:
+        """
         for program_name, program_config in self.config["programs"].items():
             if program_config["autostart"]:
                 self.start_program(program_name)
 
-    def start_program(self, program_name):
+    def start_program(self, program_name: str):
+        """
+        Start a program with the given name and configuration from the config file
+        :param program_name:
+        :return:
+        """
         program_config = self.config["programs"][program_name]
         for i in range(program_config["numprocs"]):
             process = self._start_process(program_name, program_config)
@@ -34,25 +71,40 @@ class ProcessManager:
                 ProcessInfo(process.pid, program_config["cmd"], program_config)
             )
         self.logger.info(f"Started program: {program_name}")
-
-    def _start_process(self, program_name, program_config):
+    
+    def _start_process(self, program_name: str, program_config: dict):
+        """
+        Start a process with the given name and configuration
+        Copy the environment variables from the current environment and update with the environment variables from the config
+        :param program_name:
+        :param program_config:
+        :return:
+        """
         env = os.environ.copy()
         env.update(program_config.get("env", {}))
-
-        process = subprocess.Popen(
-            program_config["cmd"],
-            shell=True,
-            stdout=open(program_config["stdout"], "a"),
-            stderr=open(program_config["stderr"], "a"),
-            env=env,
-            cwd=program_config["workingdir"],
-            preexec_fn=lambda: os.umask(int(program_config["umask"], 8)),
-        )
-
+        
+        with (open(program_config["stdout"], "w") as stdout,
+              open(program_config["stderr"], "w") as stderr):
+            process = subprocess.Popen(
+                program_config["cmd"],
+                shell=True,
+                stdout=stdout,
+                stderr=stderr,
+                env=env,
+                cwd=program_config["workingdir"],
+                preexec_fn=lambda: os.umask(int(program_config["umask"], 8)),
+            )
+        
         self.logger.info(f"Started process {process.pid} for program {program_name}")
         return process
 
-    def stop_program(self, program_name):
+    def stop_program(self, program_name: str):
+        """
+        Stop a program with the given name and all its processes by
+        sending the stop signal and then killing the process
+        :param program_name:
+        :return:
+        """
         if program_name not in self.processes:
             self.logger.warning(f"Program {program_name} is not running")
             return
@@ -79,12 +131,21 @@ class ProcessManager:
         del self.processes[program_name]
         self.logger.info(f"Stopped program: {program_name}")
 
-    def restart_program(self, program_name):
+    def restart_program(self, program_name: str):
+        """
+        Restart a program with the given name by stopping it and then starting it again
+        :param program_name:
+        :return:
+        """
         self.stop_program(program_name)
         self.start_program(program_name)
 
     
     def get_status(self):
+        """
+        Get the status of all programs and their processes
+        :return:
+        """
         status = {}
         for program_name, process_infos in self.processes.items():
             status[program_name] = []
@@ -105,7 +166,12 @@ class ProcessManager:
                 )
         return status
 
-    def update_config(self, new_config):
+    def update_config(self, new_config: dict):
+        """
+        Update the configuration of the ProcessManager
+        :param new_config:
+        :return:
+        """
         old_programs = set(self.config["programs"].keys())
         new_programs = set(new_config["programs"].keys())
 
@@ -117,6 +183,9 @@ class ProcessManager:
                 self.start_program(program_name)
 
         for program_name in old_programs & new_programs:
+            """
+                if the program config has changed, restart the program
+            """
             if (
                 self.config["programs"][program_name]
                 != new_config["programs"][program_name]
@@ -126,11 +195,15 @@ class ProcessManager:
         self.config = new_config
     
     def check_and_restart(self):
+        """
+        Check all processes and restart them if they are not running
+        :return:
+        """
         for program_name, process_infos in self.processes.items():
             program_config = self.config["programs"][program_name]
             for i, process_info in enumerate(process_infos):
                 try:
-                    os.kill(process_info.pid, 0)  # проверяем, работает ли процесс
+                    os.kill(process_info.pid, 0)
                 except OSError:
                     if (
                             program_config["autorestart"] == "always"
@@ -138,7 +211,13 @@ class ProcessManager:
                     ):
                         self._restart_process(program_name, i)
 
-    def _restart_process(self, program_name, index):
+    def _restart_process(self, program_name: str, index: int):
+        """
+        Restart a process for a program with the given name and index in the list of processes
+        :param program_name:
+        :param index:
+        :return:
+        """
         program_config = self.config["programs"][program_name]
         old_process = self.processes[program_name][index]
         if old_process.restarts < program_config["startretries"]:

@@ -1,0 +1,12 @@
+programs:
+  program1:
+    cmd: "echo 'Test output' > /tmp/test1.txt"
+    umask: "022"
+    stdout: "/tmp/program1.log"
+    stderr: "/tmp/program1.err"
+
+  program2:
+    cmd: "echo 'Another test' > /tmp/test2.txt"
+    umask: "077"
+    stdout: "/tmp/program2.log"
+    stderr: "/tmp/program2.err"

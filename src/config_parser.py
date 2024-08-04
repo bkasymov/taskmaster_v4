@@ -1,48 +1,86 @@
 import yaml
 from schema import Schema, And, Use, Optional
 
-
 class ConfigParser:
+    """
+    Parses the configuration file and validates the configuration
+    """
+    default_values = {
+        "numprocs": 1,
+        "umask": "022",
+        "workingdir": ".",
+        "autostart": True,
+        "autorestart": "unexpected",
+        "exitcodes": [0],
+        "startretries": 3,
+        "starttime": 5,
+        "stopsignal": "TERM",
+        "stoptime": 10,
+        "stdout": "/dev/null",
+        "stderr": "/dev/null",
+        "env": {}
+    }
+
+    """
+    Schema for the configuration file format
+    """
+    schema = Schema(
+        {
+            "programs": {
+                str: {
+                    "cmd": str,
+                    Optional("numprocs", default=1): And(int, lambda n: n > 0),
+                    Optional("umask", default="022"): And(str, lambda s: len(s) == 3 and s.isdigit()),
+                    Optional("workingdir", default="."): str,
+                    Optional("autostart", default=True): bool,
+                    Optional("autorestart", default="unexpected"): And(
+                        str,
+                        Use(str.lower),
+                        lambda s: s in ("always", "never", "unexpected"),
+                    ),
+                    Optional("exitcodes", default=[0]): [int],
+                    Optional("startretries", default=3): And(int, lambda n: n >= 0),
+                    Optional("starttime", default=5): And(int, lambda n: n > 0),
+                    Optional("stopsignal", default="TERM"): And(
+                        str,
+                        lambda s: s in ("TERM", "HUP", "INT", "QUIT", "KILL"),
+                    ),
+                    Optional("stoptime", default=10): And(int, lambda n: n > 0),
+                    Optional("stdout", default="/dev/null"): str,
+                    Optional("stderr", default="/dev/null"): str,
+                    Optional("env", default={}): {Optional(str): str}
+                }
+            }
+        }
+    )
+
     def __init__(self, config_file):
         self.config_file = config_file
 
     def parse(self):
+        """
+        Parse the configuration file and return the configuration
+        :return:
+        """
         with open(self.config_file, "r") as file:
             config = yaml.safe_load(file)
 
+        config = self.apply_defaults(config)
         self.validate_config(config)
         return config
 
-    def validate_config(self, config):
-        schema = Schema(
-            {
-                "programs": {
-                    str: {
-                        "cmd": str,
-                        "numprocs": And(int, lambda n: n > 0),
-                        "umask": And(str, lambda s: len(s) == 3 and s.isdigit()),
-                        "workingdir": str,
-                        "autostart": bool,
-                        "autorestart": And(
-                            str,
-                            Use(str.lower),
-                            lambda s: s in ("always", "never", "unexpected"),
-                        ),
-                        "exitcodes": [int],
-                        "startretries": And(int, lambda n: n >= 0),
-                        "starttime": And(int, lambda n: n > 0),
-                        "stopsignal": And(
-                            str,
-                            lambda s: s
-                            in ("TERM", "HUP", "INT", "QUIT", "KILL"),
-                        ),
-                        "stoptime": And(int, lambda n: n > 0),
-                        "stdout": str,
-                        "stderr": str,
-                        Optional("env"): {str: str},
-                    }
-                }
-            }
-        )
+    def apply_defaults(self, config: dict):
+        """
+        Apply default values to the configuration
+        :param config:
+        :return:
+        """
+        config_copy = config.copy()
+        for program_name, program_config in config_copy["programs"].items():
+            for key, default_value in self.default_values.items():
+                if key not in program_config:
+                    program_config[key] = default_value
+        return config_copy
 
-        schema.validate(config)
+    def validate_config(self, config):
+        self.schema.validate(config)
