@@ -9,7 +9,11 @@ import threading
 
 
 class Taskmaster:
-    def __init__(self, config_file):
+    def __init__(self, config_file: str):
+        """
+        Initialize the Taskmaster
+        :param config_file:
+        """
         self.config_file = config_file
         self.logger = setup_logger()
         self.config_parser = ConfigParser(config_file)
@@ -18,6 +22,10 @@ class Taskmaster:
         self.control_shell = ControlShell(self)
     
     def stop_all_programs(self):
+        """
+        Stop all programs
+        :return:
+        """
         for program_name in self.config["programs"]:
             self.stop_program(program_name)
     
@@ -31,7 +39,13 @@ class Taskmaster:
             self.process_manager.check_and_restart()
             time.sleep(1)
 
-    def compare_configs(self, old_config, new_config):
+    def compare_configs(self, old_config: dict, new_config: dict):
+        """
+        Compare two configurations and print the differences
+        :param old_config:
+        :param new_config:
+        :return:
+        """
         old_programs = set(old_config["programs"].keys())
         new_programs = set(new_config["programs"].keys())
         
@@ -77,6 +91,10 @@ class Taskmaster:
         self.reload_config()
 
     def run(self):
+        """
+        Run the Taskmaster with the control shell and process manager running in separate threads
+        :return:
+        """
         signal.signal(signal.SIGHUP, self.sighup_handler)
         self.process_manager.start_initial_processes()
 
@@ -94,13 +112,13 @@ class Taskmaster:
     def status(self):
         return self.process_manager.get_status()
 
-    def start_program(self, program_name):
+    def start_program(self, program_name: str):
         self.process_manager.start_program(program_name)
 
-    def stop_program(self, program_name):
+    def stop_program(self, program_name: str):
         self.process_manager.stop_program(program_name)
 
-    def restart_program(self, program_name):
+    def restart_program(self, program_name: str):
         self.process_manager.restart_program(program_name)
 
 

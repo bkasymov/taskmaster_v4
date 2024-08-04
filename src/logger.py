@@ -1,6 +1,10 @@
 import logging
 
 def setup_logger():
+    """
+    Setup the logger for the Taskmaster application
+    :return:
+    """
     logger = logging.getLogger('taskmaster')
     logger.setLevel(logging.INFO)
     

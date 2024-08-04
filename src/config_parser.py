@@ -2,6 +2,9 @@ import yaml
 from schema import Schema, And, Use, Optional
 
 class ConfigParser:
+    """
+    Parses the configuration file and validates the configuration
+    """
     default_values = {
         "numprocs": 1,
         "umask": "022",
@@ -18,6 +21,9 @@ class ConfigParser:
         "env": {}
     }
 
+    """
+    Schema for the configuration file format
+    """
     schema = Schema(
         {
             "programs": {
@@ -52,6 +58,10 @@ class ConfigParser:
         self.config_file = config_file
 
     def parse(self):
+        """
+        Parse the configuration file and return the configuration
+        :return:
+        """
         with open(self.config_file, "r") as file:
             config = yaml.safe_load(file)
 
@@ -59,7 +69,12 @@ class ConfigParser:
         self.validate_config(config)
         return config
 
-    def apply_defaults(self, config):
+    def apply_defaults(self, config: dict):
+        """
+        Apply default values to the configuration
+        :param config:
+        :return:
+        """
         config_copy = config.copy()
         for program_name, program_config in config_copy["programs"].items():
             for key, default_value in self.default_values.items():
