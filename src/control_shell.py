@@ -99,8 +99,8 @@ class ControlShell(cmd.Cmd):
             print("Please specify a program name or 'all' to start all programs")
             return
         if arg == 'all':
-            status = self.taskmaster.status()
-            for program_name in status.keys():
+            programs = self.taskmaster.config["programs"]
+            for program_name in programs.keys():
                 self.taskmaster.start_program(program_name)
                 self._print_program_status(program_name)
         else:
@@ -108,16 +108,25 @@ class ControlShell(cmd.Cmd):
             self._print_program_status(arg)
 
     def do_stop(self, arg: str):
+        if arg == 'all':
+            self.taskmaster.stop_all_programs()
+            print("All programs stopped")
         if not arg:
             print("Please specify a program name")
             return
         self.taskmaster.stop_program(arg)
         self._print_program_status(arg)
-
+    
     def do_restart(self, arg: str):
         if not arg:
-            print("Please specify a program name")
+            print("Please specify a program name or 'all' to restart all programs")
             return
+        
+        if arg.lower() == 'all':
+            self.taskmaster.restart_all_programs()
+            print("All programs restarted")
+            return
+        
         self.taskmaster.restart_program(arg)
         self._print_program_status(arg)
 

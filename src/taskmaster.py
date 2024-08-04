@@ -109,6 +109,7 @@ class Taskmaster:
 
         self.control_shell.cmdloop()
 
+    
     def status(self):
         return self.process_manager.get_status()
 
@@ -117,6 +118,9 @@ class Taskmaster:
 
     def stop_program(self, program_name: str):
         self.process_manager.stop_program(program_name)
+
+    def restart_all_programs(self):
+        self.process_manager.restart_all_programs()
 
     def restart_program(self, program_name: str):
         self.process_manager.restart_program(program_name)

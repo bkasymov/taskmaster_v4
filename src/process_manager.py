@@ -49,6 +49,9 @@ class ProcessManager:
 		:param program_name:
 		:return:
 		"""
+		if program_name not in self.config["programs"]:
+			self.logger.warning(f"Program {program_name} not found in config")
+			return
 		program_config = self.config["programs"][program_name]
 		for i in range(program_config["numprocs"]):
 			process = self._start_process(program_name, program_config)
@@ -110,6 +113,14 @@ class ProcessManager:
 		
 		del self.processes[program_name]
 		self.logger.info(f"Stopped program: {program_name}")
+	
+	def restart_all_programs(self):
+		"""
+		Restart all programs by stopping them and then starting them again
+		:return:
+		"""
+		for program_name in self.config["programs"]:
+			self.restart_program(program_name)
 	
 	def restart_program(self, program_name: str):
 		"""
