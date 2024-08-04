@@ -33,21 +33,6 @@ class ProcessManager:
 		self.config = config
 		self.logger = logger
 		self.processes = {}
-		atexit.register(self.cleanup)
-	
-	def cleanup(self):
-		"""
-		Cleanup function to stop all processes
-		:return:
-		"""
-		for program_processes in self.processes.values():
-			for process_info in program_processes:
-				if process_info.process.poll() is None:
-					process_info.process.terminate()
-					try:
-						process_info.process.wait(timeout=0.5)
-					except subprocess.TimeoutExpired:
-						process_info.process.kill()
 	
 	def start_initial_processes(self):
 		"""
