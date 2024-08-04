@@ -1,0 +1,19 @@
+programs:
+  test_program:
+    autorestart: unexpected
+    autostart: true
+    cmd: python -c "import sys; sys.exit(2)"
+    env:
+      TEST_VAR: test_value
+    exitcodes:
+    - 0
+    - 2
+    numprocs: 3
+    startretries: 3
+    starttime: 5
+    stderr: /tmp/test_program.stderr
+    stdout: /tmp/test_program.stdout
+    stopsignal: TERM
+    stoptime: 10
+    umask: '022'
+    workingdir: /tmp

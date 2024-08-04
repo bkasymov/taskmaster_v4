@@ -7,15 +7,16 @@ import time
 
 
 class ProcessInfo:
-    """
-    Class to store information about a process
-    """
-    def __init__(self, pid: int, cmd: str, config: dict):
-        self.pid = pid
-        self.cmd = cmd
-        self.config = config
-        self.restarts = 0
-        self.start_time = time.time()
+	"""
+	Class to store information about a process
+	"""
+	
+	def __init__(self, process: subprocess.Popen, cmd: str, config: dict):
+		self.process = process
+		self.cmd = cmd
+		self.config = config
+		self.restarts = 0
+		self.start_time = time.time()
 
 
 class ProcessManager:
@@ -32,7 +33,6 @@ class ProcessManager:
 		self.config = config
 		self.logger = logger
 		self.processes = {}
-
 	
 	def start_initial_processes(self):
 		"""
