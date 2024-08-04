@@ -1,0 +1,29 @@
+# Test Configuration 3
+#
+# This configuration tests:
+# 1. Working directory setting
+# 2. Umask setting
+#
+# How to test:
+# 1. Start Taskmaster with this configuration
+# 2. Check /tmp/pwd_test.stdout to ensure it shows /tmp
+# 3. Check /tmp/umask_test.stdout for the umask value and file permissions
+#    The umask should be 077, and the file permissions should be -rw-------
+
+programs:
+  pwd_test:
+    cmd: "pwd"
+    numprocs: 1
+    autostart: true
+    autorestart: never
+    stdout: /tmp/pwd_test.stdout
+    workingdir: /tmp
+
+  umask_test:
+    cmd: "umask && touch test_file && ls -l test_file && rm test_file"
+    numprocs: 1
+    autostart: true
+    autorestart: never
+    stdout: /tmp/umask_test.stdout
+    workingdir: /tmp
+    umask: "077"

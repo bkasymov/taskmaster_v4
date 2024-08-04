@@ -1,0 +1,34 @@
+# Test Configuration 1
+#
+# This configuration tests:
+# 1. Basic program execution
+# 2. Autostart functionality
+# 3. Different autorestart settings
+# 4. Multiple processes for a single program
+#
+# How to test:
+# 1. Start Taskmaster with this configuration
+# 2. Check that 'echo_test' started automatically, but 'sleep_test' did not
+# 3. Manually start 'sleep_test' and verify that two processes are running
+# 4. Try to stop 'sleep_test' and ensure it doesn't restart
+
+programs:
+  echo_test:
+    cmd: "echo 'Hello, Taskmaster!'"
+    numprocs: 1
+    autostart: true
+    autorestart: unexpected
+    exitcodes:
+      - 0
+    startretries: 3
+    starttime: 1
+    stopsignal: TERM
+    stoptime: 5
+    stdout: /tmp/echo_test.stdout
+    stderr: /tmp/echo_test.stderr
+
+  sleep_test:
+    cmd: "sleep 60"
+    numprocs: 2
+    autostart: false
+    autorestart: never
