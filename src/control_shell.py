@@ -2,14 +2,18 @@ import cmd
 import signal
 import sys
 
+import yaml
 from prettytable import PrettyTable
 
 
 class ControlShell(cmd.Cmd):
     intro = (
-        "Welcome to the Taskmaster control shell. Type 'help' or '?' to list commands."
+        "Hey!😊\n"
+        "Welcome to the Taskmaster control shell.\n"
+        "Type 'help' or '？' to list commands."
     )
     prompt = "(taskmaster) "
+    
 
     def __init__(self, taskmaster):
         super().__init__()
@@ -44,6 +48,9 @@ class ControlShell(cmd.Cmd):
     def do_history(self, arg):
         for i, command in enumerate(self.command_history, 1):
             print(f"{i}: {command}")
+    
+    def help_cat(self):
+        print("Show the configuration of a program.")
     
     def do_status(self, arg):
         status = self.taskmaster.status()
@@ -108,10 +115,22 @@ class ControlShell(cmd.Cmd):
 
     def do_quit(self, arg):
         print("Exiting Taskmaster...")
+        self.taskmaster.stop_all_programs()
         return True
 
     def do_exit(self, arg):
         return self.do_quit(arg)
+    
+    def do_cat(self, arg):
+        if not arg:
+            print("Please specify a program name")
+            return
+        status = self.taskmaster.config["programs"].get(arg)
+        if status:
+            print(f"\nConfiguration for {arg}:")
+            print(yaml.dump({arg: status}, default_flow_style=False))
+        else:
+            print(f"Program {arg} not found")
     
     def _print_program_status(self, program_name):
         status = self.taskmaster.status()
@@ -128,9 +147,7 @@ class ControlShell(cmd.Cmd):
     
     def signal_handler(self, signum, frame):
         print("\nReceived SIGINT, stopping all programs and exiting...")
-        status = self.taskmaster.status()
-        for program_name in status.keys():
-            self.taskmaster.stop_program(program_name)
+        self.taskmaster.stop_all_programs()
         sys.exit(0)
     
     def precmd(self, line):

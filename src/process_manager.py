@@ -27,7 +27,7 @@ class ProcessManager:
             if process.poll() is None:
                 process.terminate()
                 try:
-                    process.wait(timeout=0.5)  # Ожидаем завершения подпроцесса
+                    process.wait(timeout=0.5)
                 except subprocess.TimeoutExpired:
                     process.kill()
 
@@ -51,7 +51,8 @@ class ProcessManager:
         env = os.environ.copy()
         env.update(program_config.get("env", {}))
         
-        with open(program_config["stdout"], "w") as stdout, open(program_config["stderr"], "w") as stderr:
+        with (open(program_config["stdout"], "w") as stdout,
+              open(program_config["stderr"], "w") as stderr):
             process = subprocess.Popen(
                 program_config["cmd"],
                 shell=True,
@@ -130,6 +131,9 @@ class ProcessManager:
                 self.start_program(program_name)
 
         for program_name in old_programs & new_programs:
+            """
+                if the program config has changed, restart the program
+            """
             if (
                 self.config["programs"][program_name]
                 != new_config["programs"][program_name]
@@ -143,7 +147,7 @@ class ProcessManager:
             program_config = self.config["programs"][program_name]
             for i, process_info in enumerate(process_infos):
                 try:
-                    os.kill(process_info.pid, 0)  # проверяем, работает ли процесс
+                    os.kill(process_info.pid, 0)
                 except OSError:
                     if (
                             program_config["autorestart"] == "always"

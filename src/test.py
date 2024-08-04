@@ -1,129 +1,167 @@
 import unittest
-import os
 import subprocess
-import time
+import os
 import signal
-from taskmaster import Taskmaster
-import threading
+import time
 import yaml
-import psutil
-
-RESULT_DIR = "../result"
-CONFIG_FILE = "test_config.yaml"
+from taskmaster import Taskmaster
 
 
-class TestListTmpConfig(unittest.TestCase):
+class TestTaskmaster(unittest.TestCase):
 	@classmethod
 	def setUpClass(cls):
-		if not os.path.exists(RESULT_DIR):
-			os.makedirs(RESULT_DIR)
+		cls.config_file = 'test_config.yaml'
+		cls.create_test_config()
+		cls.taskmaster = Taskmaster(cls.config_file)
 	
 	@classmethod
 	def tearDownClass(cls):
-		if os.path.exists(CONFIG_FILE):
-			os.remove(CONFIG_FILE)
-		for file in os.listdir(RESULT_DIR):
-			os.remove(os.path.join(RESULT_DIR, file))
-		os.rmdir(RESULT_DIR)
+		os.remove(cls.config_file)
 	
-	def setUp(self):
-		for file in os.listdir(RESULT_DIR):
-			os.remove(os.path.join(RESULT_DIR, file))
-	
-	def create_config(self, umask):
+	@classmethod
+	def create_test_config(cls):
 		config = {
 			"programs": {
-				"list_tmp": {
-					"cmd": "ls -la /tmp",
-					"numprocs": 1,
-					"umask": umask,
-					"workingdir": ".",
+				"test_program": {
+					"cmd": "python -c 'import time; print(\"Running\"); time.sleep(30)'",
+					"numprocs": 2,
+					"umask": "022",
+					"workingdir": "/tmp",
 					"autostart": True,
-					"autorestart": "never",
-					"exitcodes": [0],
-					"startretries": 1,
-					"starttime": 1,
+					"autorestart": "unexpected",
+					"exitcodes": [0, 2],
+					"startretries": 3,
+					"starttime": 5,
 					"stopsignal": "TERM",
-					"stoptime": 5,
-					"stdout": os.path.join(RESULT_DIR, "list_tmp.stdout"),
-					"stderr": os.path.join(RESULT_DIR, "list_tmp.stderr")
+					"stoptime": 10,
+					"stdout": "/tmp/test_program.stdout",
+					"stderr": "/tmp/test_program.stderr",
+					"env": {
+						"TEST_VAR": "test_value"
+					}
 				}
 			}
 		}
-		with open(CONFIG_FILE, "w") as f:
+		with open(cls.config_file, 'w') as f:
 			yaml.dump(config, f)
 	
-	def test_umask_variations(self):
-		umask_values = ["000", "022", "077"]
-		expected_permissions = ["666", "644", "600"]
+	def test_control_shell(self):
+		# Test start, stop, and restart commands
+		self.taskmaster.control_shell.do_start('test_program')
+		status = self.taskmaster.status()
+		self.assertEqual(len(status['test_program']), 2)
+		self.assertEqual(status['test_program'][0]['status'], 'running')
 		
-		for umask, expected_perm in zip(umask_values, expected_permissions):
-			with self.subTest(umask=umask):
-				self.create_config(umask)
-				taskmaster = Taskmaster(CONFIG_FILE)
-				
-				taskmaster_thread = threading.Thread(target=taskmaster.run_without_shell)
-				taskmaster_thread.daemon = True
-				taskmaster_thread.start()
-				
-				time.sleep(2)
-				
-				stdout_file = os.path.join(RESULT_DIR, "list_tmp.stdout")
-				self.assertTrue(os.path.exists(stdout_file), f"Файл {stdout_file} не создан")
-				
-				st_mode = os.stat(stdout_file).st_mode & 0o777
-				actual_perms = oct(st_mode)[-3:]
-				self.assertEqual(actual_perms, expected_perm,
-				                 f"Неправильные права доступа для umask {umask}: ожидалось {expected_perm}, получено {actual_perms}")
-				
-				taskmaster.stop_all_programs()
-				time.sleep(1)
+		self.taskmaster.control_shell.do_stop('test_program')
+		status = self.taskmaster.status()
+		self.assertEqual(status['test_program'][0]['status'], 'stopped')
+		
+		self.taskmaster.control_shell.do_restart('test_program')
+		status = self.taskmaster.status()
+		self.assertEqual(status['test_program'][0]['status'], 'running')
 	
-	def test_other_config_parameters(self):
-		self.create_config("022")
-		taskmaster = Taskmaster(CONFIG_FILE)
+	def test_configuration_loading(self):
+		config = self.taskmaster.config
+		self.assertIn('test_program', config['programs'])
+		self.assertEqual(config['programs']['test_program']['numprocs'], 2)
+	
+	def test_logging(self):
+		# Assuming logs are written to a file
+		self.taskmaster.control_shell.do_start('test_program')
+		time.sleep(1)  # Give some time for logging
+		with open('/tmp/taskmaster.log', 'r') as log_file:
+			log_content = log_file.read()
+		self.assertIn('Started program: test_program', log_content)
+	
+	def test_hot_reload(self):
+		original_config = self.taskmaster.config
+		new_config = original_config.copy()
+		new_config['programs']['test_program']['numprocs'] = 3
 		
-		taskmaster_thread = threading.Thread(target=taskmaster.run_without_shell)
-		taskmaster_thread.daemon = True
-		taskmaster_thread.start()
+		with open(self.config_file, 'w') as f:
+			yaml.dump(new_config, f)
 		
-		time.sleep(2)
-		
-		status = taskmaster.status()
-		self.assertEqual(len(status["list_tmp"]), 1, "Количество процессов должно быть 1")
-		
-		self.assertTrue(all(proc["status"] == "running" for proc in status["list_tmp"]),
-		                "Процесс должен быть запущен автоматически")
-		
-		stdout_file = os.path.join(RESULT_DIR, "list_tmp.stdout")
-		with open(stdout_file, "r") as f:
+		self.taskmaster.reload_config()
+		self.assertEqual(self.taskmaster.config['programs']['test_program']['numprocs'], 3)
+	
+	def test_command_execution(self):
+		self.taskmaster.control_shell.do_start('test_program')
+		time.sleep(1)
+		with open('/tmp/test_program.stdout', 'r') as f:
 			output = f.read()
-		self.assertIn("/tmp", output, "Вывод команды должен содержать /tmp")
-		
-		for proc in status["list_tmp"]:
-			pid = proc["pid"]
-			process = psutil.Process(pid)
-			self.assertEqual(process.cwd(), os.getcwd(), "Рабочая директория должна быть текущей директорией")
-		
-		pid = status["list_tmp"][0]["pid"]
-		os.kill(pid, signal.SIGTERM)
-		time.sleep(2)
-		new_status = taskmaster.status()
-		self.assertEqual(len(new_status["list_tmp"]), 0, "Процесс не должен быть перезапущен")
-		
-		result = subprocess.run(["ls", "-la", "/tmp"], capture_output=True)
-		self.assertEqual(result.returncode, 0, "Команда должна завершиться с кодом 0")
-		
-		taskmaster.start_program("list_tmp")
+		self.assertIn('Running', output)
+	
+	def test_process_count(self):
+		self.taskmaster.control_shell.do_start('test_program')
+		status = self.taskmaster.status()
+		self.assertEqual(len(status['test_program']), 2)
+	
+	def test_autostart(self):
+		self.taskmaster.process_manager.start_initial_processes()
+		status = self.taskmaster.status()
+		self.assertIn('test_program', status)
+		self.assertEqual(status['test_program'][0]['status'], 'running')
+	
+	def test_autorestart(self):
+		self.taskmaster.control_shell.do_start('test_program')
+		initial_pid = self.taskmaster.process_manager.processes['test_program'][0].pid
+		os.kill(initial_pid, signal.SIGTERM)
+		time.sleep(2)  # Give some time for restart
+		new_pid = self.taskmaster.process_manager.processes['test_program'][0].pid
+		self.assertNotEqual(initial_pid, new_pid)
+	
+	def test_exit_codes(self):
+		# Modify config to use a script with different exit codes
+		self.taskmaster.config['programs']['test_program']['cmd'] = 'python -c "import sys; sys.exit(2)"'
+		self.taskmaster.control_shell.do_start('test_program')
+		time.sleep(2)  # Give some time for execution and restart
+		status = self.taskmaster.status()
+		self.assertEqual(status['test_program'][0]['status'], 'running')
+	
+	def test_start_time(self):
+		start_time = time.time()
+		self.taskmaster.control_shell.do_start('test_program')
+		status = self.taskmaster.status()
+		self.assertGreaterEqual(time.time() - start_time,
+		                        self.taskmaster.config['programs']['test_program']['starttime'])
+	
+	def test_stop_signal(self):
+		self.taskmaster.control_shell.do_start('test_program')
+		start_time = time.time()
+		self.taskmaster.control_shell.do_stop('test_program')
+		self.assertLessEqual(time.time() - start_time, self.taskmaster.config['programs']['test_program']['stoptime'])
+	
+	def test_stdout_stderr_redirection(self):
+		self.taskmaster.control_shell.do_start('test_program')
 		time.sleep(1)
-		taskmaster.stop_program("list_tmp")
-		time.sleep(6)
-		final_status = taskmaster.status()
-		self.assertFalse("list_tmp" in final_status, "Программа должна быть остановлена")
-		
-		taskmaster.stop_all_programs()
+		self.assertTrue(os.path.exists('/tmp/test_program.stdout'))
+		self.assertTrue(os.path.exists('/tmp/test_program.stderr'))
+	
+	def test_env_variables(self):
+		self.taskmaster.config['programs']['test_program'][
+			'cmd'] = 'python -c "import os; print(os.environ.get(\'TEST_VAR\'))"'
+		self.taskmaster.control_shell.do_start('test_program')
 		time.sleep(1)
+		with open('/tmp/test_program.stdout', 'r') as f:
+			output = f.read().strip()
+		self.assertEqual(output, 'test_value')
+	
+	def test_working_directory(self):
+		self.taskmaster.config['programs']['test_program']['cmd'] = 'python -c "import os; print(os.getcwd())"'
+		self.taskmaster.control_shell.do_start('test_program')
+		time.sleep(1)
+		with open('/tmp/test_program.stdout', 'r') as f:
+			output = f.read().strip()
+		self.assertEqual(output, '/tmp')
+	
+	def test_umask(self):
+		self.taskmaster.config['programs']['test_program']['cmd'] = 'python -c "import os; print(oct(os.umask(0)))"'
+		self.taskmaster.control_shell.do_start('test_program')
+		time.sleep(1)
+		with open('/tmp/test_program.stdout', 'r') as f:
+			output = f.read().strip()
+		self.assertEqual(output, '0o022')
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
 	unittest.main()

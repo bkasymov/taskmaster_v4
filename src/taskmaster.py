@@ -23,7 +23,7 @@ class Taskmaster:
     
     def run_without_shell(self):
         """
-        Run Taskmaster without control shell
+        Run Taskmaster without control shell (for testing purposes)
         :return:
         """
         self.process_manager.start_initial_processes()
@@ -72,7 +72,7 @@ class Taskmaster:
         except Exception as e:
             self.logger.error(f"Failed to reload configuration: {e}")
 
-    def sighup_handler(self, signum, frame):
+    def sighup_handler(self):
         self.logger.info("Received SIGHUP, reloading configuration")
         self.reload_config()
 
@@ -84,8 +84,6 @@ class Taskmaster:
             while True:
                 self.process_manager.check_and_restart()
                 time.sleep(1)
-
-        
 
         checker_thread = threading.Thread(target=check_processes)
         checker_thread.daemon = True

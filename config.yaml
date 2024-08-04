@@ -34,12 +34,10 @@ programs:
     stderr: result/list_tmp.stderr
 
   echo_test:
-    cmd: "echo 'Hello, Bekha!!!'"
+    cmd: "echo $MESSAGE"
     numprocs: 3
     umask: "027"
     workingdir: .
-    autostart: false
-    autorestart: unexpected
     exitcodes:
       - 0
       - 1
