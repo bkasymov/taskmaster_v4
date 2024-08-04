@@ -12,8 +12,8 @@ programs:
     starttime: 1
     stopsignal: TERM
     stoptime: 5
-    stdout: ../result/echo_test.stdout
-    stderr: ../result/echo_test.stderr
+    stdout: result/echo_test.stdout
+    stderr: result/echo_test.stderr
     env:
       TEST_VAR: "test_value"
 
@@ -30,8 +30,8 @@ programs:
     starttime: 1
     stopsignal: TERM
     stoptime: 10
-    stdout: ../result/sleep_test.stdout
-    stderr: ../result/sleep_test.stderr
+    stdout: result/sleep_test.stdout
+    stderr: result/sleep_test.stderr
 
   fast_exit:
     cmd: "exit 1"
@@ -46,8 +46,8 @@ programs:
     starttime: 1
     stopsignal: TERM
     stoptime: 2
-    stdout: ../result/fast_exit.stdout
-    stderr: ../result/fast_exit.stderr
+    stdout: result/fast_exit.stdout
+    stderr: result/fast_exit.stderr
 
   custom_env:
     cmd: "env"
@@ -62,8 +62,8 @@ programs:
     starttime: 1
     stopsignal: HUP
     stoptime: 3
-    stdout: ../result/custom_env.stdout
-    stderr: ../result/custom_env.stderr
+    stdout: result/custom_env.stdout
+    stderr: result/custom_env.stderr
     env:
       CUSTOM_VAR: "custom_value"
       PATH: "/custom/path:$PATH"

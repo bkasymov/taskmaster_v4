@@ -3,7 +3,7 @@ import os
 import signal
 import time
 import yaml
-from taskmaster import Taskmaster
+from src.taskmaster import Taskmaster
 
 
 class TestTaskmaster(unittest.TestCase):
