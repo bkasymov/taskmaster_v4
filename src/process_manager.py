@@ -96,7 +96,7 @@ class ProcessManager:
 		:return:
 		"""
 		if program_name not in self.processes:
-			self.logger.warning(f"Program {program_name} is not running")
+			self.logger.warning(f"Process with {program_name} is not running")
 			return
 		
 		program_config = self.config["programs"][program_name]

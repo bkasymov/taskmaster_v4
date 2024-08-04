@@ -111,6 +111,7 @@ class ControlShell(cmd.Cmd):
         if arg == 'all':
             self.taskmaster.stop_all_programs()
             print("All programs stopped")
+            return
         if not arg:
             print("Please specify a program name")
             return
@@ -175,7 +176,7 @@ class ControlShell(cmd.Cmd):
                                f"{process['uptime']} seconds"])
             print(table)
         else:
-            print(f"Program {program_name} not found")
+            print(f"Process with {program_name} not found")
     
     def signal_handler(self):
         print("\nReceived SIGINT, stopping all programs and exiting...")
