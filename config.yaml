@@ -4,15 +4,12 @@ programs:
     numprocs: 2
     umask: "022"
     workingdir: .
-    autostart: true
+    autostart: True
     autorestart: unexpected
-    exitcodes:
-      - 0
     startretries: 3
-    starttime: 1
     stopsignal: TERM
-    stoptime: 5
-    stdout: result/echo_test.stdout
+    stoptime: 0
+    stdout: /tmp/echo_test.stdout
     stderr: result/echo_test.stderr
     env:
       TEST_VAR: "test_value"
@@ -29,7 +26,7 @@ programs:
     startretries: 4
     starttime: 1
     stopsignal: TERM
-    stoptime: 10
+    stoptime: 0
     stdout: result/sleep_test.stdout
     stderr: result/sleep_test.stderr
 
@@ -45,7 +42,7 @@ programs:
     startretries: 3
     starttime: 1
     stopsignal: TERM
-    stoptime: 2
+    stoptime: 1
     stdout: result/fast_exit.stdout
     stderr: result/fast_exit.stderr
 
@@ -61,7 +58,7 @@ programs:
     startretries: 1
     starttime: 1
     stopsignal: HUP
-    stoptime: 3
+    stoptime: 1
     stdout: result/custom_env.stdout
     stderr: result/custom_env.stderr
     env:

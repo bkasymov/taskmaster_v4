@@ -60,21 +60,23 @@ class ProcessManager:
 		env.update(program_config.get("env", {}))
 		
 		umask = int(program_config["umask"], 8)
-		
-		with open(program_config["stdout"], "w") as stdout, open(program_config["stderr"], "w") as stderr:
-			process = subprocess.Popen(
-				f"umask {umask:03o} && exec {program_config['cmd']}",
-				shell=True,
-				stdout=stdout,
-				stderr=stderr,
-				env=env,
-				cwd=program_config["workingdir"],
-				preexec_fn=lambda: os.umask(umask),
-			)
-		
-		self.logger.info(f"Started process {process.pid} for program {program_name} with umask {umask:03o}")
-		return process
-	
+		old_umask = os.umask(umask)
+		try:
+			with open(program_config["stdout"], "w") as stdout, open(program_config["stderr"], "w") as stderr:
+				process = subprocess.Popen(
+					program_config['cmd'],
+					shell=True,
+					stdout=stdout,
+					stderr=stderr,
+					env=env,
+					cwd=program_config["workingdir"],
+				)
+			
+			self.logger.info(f"Started process {process.pid} for program {program_name} with umask {umask:03o}")
+			return process
+		finally:
+			os.umask(old_umask)
+			
 	def stop_program(self, program_name: str):
 		if program_name not in self.processes:
 			self.logger.warning(f"Process with {program_name} is not running")
