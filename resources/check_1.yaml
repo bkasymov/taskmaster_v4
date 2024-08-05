@@ -31,4 +31,4 @@ programs:
     cmd: "sleep 60"
     numprocs: 2
     autostart: false
-    autorestart: never
+    autorestart: always
