@@ -10,32 +10,22 @@ import threading
 
 class Taskmaster:
     def __init__(self, config_file: str):
-        """
-        Initialize the Taskmaster
-        :param config_file:
-        """
         self.config_file = config_file
         self.logger = setup_logger()
         self.config_parser = ConfigParser(config_file)
         self.config = self.config_parser.parse()
         self.process_manager = ProcessManager(self.config, self.logger)
         self.control_shell = ControlShell(self)
-    
+        self.is_running = threading.Event()
+        self.is_running.set()
+
     def stop_all_programs(self):
-        """
-        Stop all programs
-        :return:
-        """
         for program_name in self.config["programs"]:
             self.stop_program(program_name)
-    
+
     def run_without_shell(self):
-        """
-        Run Taskmaster without control shell (for testing purposes)
-        :return:
-        """
         self.process_manager.start_initial_processes()
-        while True:
+        while self.is_running.is_set():
             self.process_manager.check_and_restart()
             time.sleep(1)
 
@@ -86,20 +76,23 @@ class Taskmaster:
         except Exception as e:
             self.logger.error(f"Failed to reload configuration: {e}")
 
-    def sighup_handler(self):
+    def sighup_handler(self, signum, frame):
         self.logger.info("Received SIGHUP, reloading configuration")
         self.reload_config()
 
+    def sigint_handler(self, signum, frame):
+        self.logger.info("Received SIGINT, shutting down...")
+        self.is_running.clear()
+        self.stop_all_programs()
+        sys.exit(0)
+
     def run(self):
-        """
-        Run the Taskmaster with the control shell and process manager running in separate threads
-        :return:
-        """
         signal.signal(signal.SIGHUP, self.sighup_handler)
+        signal.signal(signal.SIGINT, self.sigint_handler)
         self.process_manager.start_initial_processes()
 
         def check_processes():
-            while True:
+            while self.is_running.is_set():
                 self.process_manager.check_and_restart()
                 time.sleep(1)
 
@@ -107,7 +100,10 @@ class Taskmaster:
         checker_thread.daemon = True
         checker_thread.start()
 
-        self.control_shell.cmdloop()
+        try:
+            self.control_shell.cmdloop()
+        except KeyboardInterrupt:
+            self.sigint_handler(None, None)
 
     
     def status(self):

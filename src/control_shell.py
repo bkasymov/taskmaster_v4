@@ -116,7 +116,7 @@ class ControlShell(cmd.Cmd):
             print("Please specify a program name")
             return
         self.taskmaster.stop_program(arg)
-        self._print_program_status(arg)
+        # self._print_program_status(arg)
     
     def do_restart(self, arg: str):
         if not arg:

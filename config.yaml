@@ -26,7 +26,7 @@ programs:
     autorestart: never
     exitcodes:
       - 0
-    startretries: 1
+    startretries: 4
     starttime: 1
     stopsignal: TERM
     stoptime: 10

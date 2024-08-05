@@ -22,6 +22,7 @@ programs:
     stoptime: 1
     stdout: /tmp/always_restart.stdout
 
+
   unexpected_only:
     cmd: "python3 -c 'import sys; print(sys.argv[1]); exit(int(sys.argv[1]))' 2"
     numprocs: 1
@@ -30,5 +31,5 @@ programs:
     exitcodes:
       - 0
       - 1
-    startretries: 3
+    startretries: 5
     stdout: /tmp/unexpected_only.stdout
