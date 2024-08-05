@@ -27,4 +27,4 @@ programs:
     autorestart: never
     stdout: /tmp/umask_test.stdout
     workingdir: /tmp
-    umask: "077"
+    umask: "066"

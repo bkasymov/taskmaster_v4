@@ -71,7 +71,6 @@ class Taskmaster:
             new_config = self.config_parser.parse()
             self.compare_configs(old_config, new_config)
             self.process_manager.update_config(new_config)
-            self.config = new_config
             self.logger.info("Configuration reloaded successfully")
         except Exception as e:
             self.logger.error(f"Failed to reload configuration: {e}")
