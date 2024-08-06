@@ -83,7 +83,7 @@ class ProcessManager:
 			
 	def stop_program(self, program_name: str):
 		if program_name not in self.processes:
-			self.logger.warning(f"Process with {program_name} is not running")
+			self.logger(f"Process with {program_name} is not running")
 			print(f"Process with {program_name} is not running")
 			return
 		

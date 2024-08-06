@@ -15,10 +15,6 @@ class ControlShell(cmd.Cmd):
     
 
     def __init__(self, taskmaster):
-        """
-        Initialize the control shell
-        :param taskmaster:
-        """
         super().__init__()
         self.taskmaster = taskmaster
         self.command_history = []
@@ -56,11 +52,6 @@ class ControlShell(cmd.Cmd):
         print("Show the configuration of a program.")
     
     def do_status(self, arg):
-        """
-        Show the status of programs or a specific program if specified as an argument
-        :param arg:
-        :return:
-        """
         status = self.taskmaster.status()
         config_programs = set(self.taskmaster.config["programs"].keys())
         
@@ -90,11 +81,6 @@ class ControlShell(cmd.Cmd):
         print(table)
     
     def do_start(self, arg: str):
-        """
-        Start a program or all programs if specified as an argument or 'all'
-        :param arg:
-        :return:
-        """
         if not arg:
             print("Please specify a program name or 'all' to start all programs")
             return
@@ -116,7 +102,6 @@ class ControlShell(cmd.Cmd):
             print("Please specify a program name")
             return
         self.taskmaster.stop_program(arg)
-        # self._print_program_status(arg)
     
     def do_restart(self, arg: str):
         if not arg:
@@ -145,11 +130,7 @@ class ControlShell(cmd.Cmd):
         return self.do_quit(arg)
     
     def do_cat(self, arg: str):
-        """
-        Show the configuration of a program
-        :param arg:
-        :return:
-        """
+
         if not arg:
             print("Please specify a program name")
             return
@@ -161,11 +142,7 @@ class ControlShell(cmd.Cmd):
             print(f"Program {arg} not found")
     
     def _print_program_status(self, program_name: str):
-        """
-        Print the status of a program to the console
-        :param program_name:
-        :return:
-        """
+
         status = self.taskmaster.status()
         if program_name in status:
             print(f"Status of {program_name}:")
@@ -184,11 +161,6 @@ class ControlShell(cmd.Cmd):
         sys.exit(0)
     
     def precmd(self, line: str):
-        """
-        Add the command to the history before executing it
-        :param line:
-        :return:
-        """
         if line != '':
             self.command_history.append(line)
         return line

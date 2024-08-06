@@ -21,10 +21,10 @@ programs:
 
 # Does not work correctly. The umask is not set correctly.
   umask_test:
-    cmd: "umask && touch test_file && ls -l test_file && rm test_file"
+    cmd: "umask & tou test_file && ls -l test_file && rm test_file"
     numprocs: 1
     autostart: true
     autorestart: never
     stdout: /tmp/umask_test.stdout
     workingdir: /tmp
-    umask: "066"
+    umask: "022"

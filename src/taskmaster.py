@@ -18,6 +18,7 @@ class Taskmaster:
         error, self.config = self.config_parser.parse()
         if error is not None:
             print(f"Failed to load configuration: {error}")
+            self.stop_all_programs()
             sys.exit(1)
         self.process_manager = ProcessManager(self.config, self.logger)
         self.control_shell = ControlShell(self)
@@ -35,12 +36,6 @@ class Taskmaster:
             time.sleep(1)
 
     def compare_configs(self, old_config: dict, new_config: dict):
-        """
-        Compare two configurations and print the differences
-        :param old_config:
-        :param new_config:
-        :return:
-        """
         old_programs = set(old_config["programs"].keys())
         new_programs = set(new_config["programs"].keys())
         
