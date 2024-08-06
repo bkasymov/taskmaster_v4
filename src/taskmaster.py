@@ -1,6 +1,8 @@
 import signal
 import sys
 import time
+
+import logger
 from config_parser import ConfigParser
 from process_manager import ProcessManager
 from control_shell import ControlShell
@@ -13,7 +15,10 @@ class Taskmaster:
         self.config_file = config_file
         self.logger = setup_logger()
         self.config_parser = ConfigParser(config_file)
-        self.config = self.config_parser.parse()
+        error, self.config = self.config_parser.parse()
+        if error is not None:
+            print(f"Failed to load configuration: {error}")
+            sys.exit(1)
         self.process_manager = ProcessManager(self.config, self.logger)
         self.control_shell = ControlShell(self)
         self.is_running = threading.Event()
@@ -64,25 +69,38 @@ class Taskmaster:
                 for key in new_program_config.keys():
                     if key not in old_program_config:
                         print(f"  {key} added with value {new_program_config[key]}")
-
+    
     def reload_config(self):
         old_config = self.config
         try:
-            new_config = self.config_parser.parse()
+            error, new_config = self.config_parser.parse()
+            if error is not None:
+                raise ValueError(error)
+            
             self.compare_configs(old_config, new_config)
             self.process_manager.update_config(new_config)
+            self.config = new_config
             self.logger.info("Configuration reloaded successfully")
+            print("Configuration reloaded successfully")
         except Exception as e:
-            self.logger.error(f"Failed to reload configuration: {e}")
+            error_message = f"Failed to reload configuration: {e}"
+            self.logger.error(error_message)
+            print(error_message)
+            print("Continuing with the previous configuration")
+            self.config = old_config
+            self.process_manager.config = old_config
 
     def sighup_handler(self, signum, frame):
         self.logger.info("Received SIGHUP, reloading configuration")
         self.reload_config()
-
+    
     def sigint_handler(self, signum, frame):
         self.logger.info("Received SIGINT, shutting down...")
         self.is_running.clear()
         self.stop_all_programs()
+        while any(self.process_manager.processes.values()):
+            time.sleep(0.1)
+        self.logger.info("All processes stopped, exiting...")
         sys.exit(0)
 
     def run(self):
