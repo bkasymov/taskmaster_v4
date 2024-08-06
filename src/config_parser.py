@@ -62,13 +62,26 @@ class ConfigParser:
 			if os.path.exists(path):
 				commands.update(os.listdir(path))
 		return commands
-	
+
+	@staticmethod
+	def get_shell_builtins() -> set[str]:
+		return {
+			'alias', 'bg', 'bind', 'break', 'builtin', 'case', 'cd', 'command',
+			'continue', 'declare', 'dirs', 'disown', 'echo', 'enable', 'eval',
+			'exec', 'exit', 'export', 'fc', 'fg', 'getopts', 'hash', 'help',
+			'history', 'if', 'jobs', 'kill', 'let', 'local', 'logout', 'popd',
+			'printf', 'pushd', 'pwd', 'read', 'readonly', 'return', 'set',
+			'shift', 'shopt', 'source', 'suspend', 'test', 'times', 'trap',
+			'type', 'typeset', 'ulimit', 'umask', 'unalias', 'unset', 'wait'
+		}
+
 	@classmethod
 	def validate_command(cls, cmd: str) -> str:
 		system_commands = cls.get_system_commands()
-		
+		shell_builtins = cls.get_shell_builtins()
+		all_commands = system_commands.union(shell_builtins)
 		def is_valid_command(command):
-			return command in system_commands or subprocess.run(['which', command], stdout=subprocess.DEVNULL,
+			return command in all_commands or subprocess.run(['which', command], stdout=subprocess.DEVNULL,
 			                                                    stderr=subprocess.DEVNULL).returncode == 0
 		
 		try:
