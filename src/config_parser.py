@@ -5,6 +5,8 @@ import signal
 from typing import Dict, Any, Tuple, List
 import subprocess
 import shlex
+import re
+
 
 
 class ConfigValidationError(Exception):
@@ -109,7 +111,18 @@ class ConfigParser:
 	def parse(self) -> Tuple[str, Dict[str, Any]]:
 		try:
 			with open(self.config_file, "r") as file:
-				config = yaml.safe_load(file)
+				content = file.read()
+			
+			programs_count = len(re.findall(r'^\s*programs\s*:', content, re.MULTILINE))
+			if programs_count == 0:
+				raise ConfigValidationError("Missing 'programs' key in configuration")
+			elif programs_count > 1:
+				raise ConfigValidationError("Multiple 'programs' keys found in configuration")
+			
+			config = yaml.safe_load(content)
+			
+			if "programs" not in config:
+				raise ConfigValidationError("Missing 'programs' key in configuration")
 			
 			validated_config = self.get_schema().validate(config)
 			return None, self.apply_defaults(validated_config)

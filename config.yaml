@@ -13,22 +13,22 @@ programs:
     stderr: result/echo_test.stderr
     env:
       TEST_VAR: "test_value"
-#
-#  sleep_test:
-#    cmd: "sleep 60"
-#    numprocs: 1
-#    umask: "022"
-#    workingdir: .
-#    autostart: false
-#    autorestart: never
-#    exitcodes:
-#      - 0
-#    startretries: 4
-#    starttime: 1
-#    stopsignal: TERM
-#    stoptime: 0
-#    stdout: result/sleep_test.stdout
-#    stderr: result/sleep_test.stderr
+#programs:
+  sleep_test:
+    cmd: "sleep 60"
+    numprocs: 1
+    umask: "022"
+    workingdir: .
+    autostart: false
+    autorestart: never
+    exitcodes:
+      - 0
+    startretries: 4
+    starttime: 1
+    stopsignal: TERM
+    stoptime: 0
+    stdout: result/sleep_test.stdout
+    stderr: result/sleep_test.stderr
 #
 #  fast_exit:
 #    cmd: "exit 1"
