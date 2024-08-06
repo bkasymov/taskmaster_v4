@@ -1,0 +1,44 @@
+# Test Configuration 1: Auto-restart
+#
+# This configuration tests:
+# 1. Automatic restart of a killed process
+#
+# How to test:
+# 1. Start Taskmaster with this configuration
+# 2. Find the PID of the 'test_restart' process
+# 3. Kill the process using 'kill -9 <PID>'
+# 4. Check that the process restarts automatically
+# 5. Verify that the new PID is different from the original
+
+programs:
+  test_restart:
+    cmd: "python3 -c 'import time; print(\"Running\"); time.sleep(600)'"
+    numprocs: 1
+    autostart: true
+    autorestart: unexpected
+    startretries: 3
+    stdout: /tmp/test_restart.log
+    stderr: /tmp/test_restart.log
+
+# Test Configuration 2: Max Retries
+#
+# This configuration tests:
+# 1. Process termination after a set number of retries
+#
+# How to test:
+# 1. Start Taskmaster with this configuration
+# 2. The 'error_process' will start and immediately exit with an error
+# 3. Watch the process restart 3 times (initial start + 2 retries)
+# 4. Verify that after the 3rd failure, the process is not restarted
+# 5. Check /tmp/error_process.log to confirm 3 separate starts
+
+  error_process:
+    cmd: "python3 -c 'import sys; print(\"Error\"); sys.exit(1)'"
+    numprocs: 1
+    autostart: true
+    autorestart: unexpected
+    exitcodes:
+      - 0
+    startretries: 2
+    stdout: /tmp/error_process.log
+    stderr: /tmp/error_process.log
