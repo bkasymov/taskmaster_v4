@@ -14,7 +14,7 @@
 
 programs:
   echo_test:
-    cmd: "echo 'Hello, Taskmaster!'"
+    cmd: "echo1 'Hello, Taskmaster!'"
     numprocs: 1
     autostart: true
     autorestart: unexpected

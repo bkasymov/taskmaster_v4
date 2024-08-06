@@ -18,7 +18,6 @@ class Taskmaster:
         error, self.config = self.config_parser.parse()
         if error is not None:
             print(f"Failed to load configuration: {error}")
-            self.stop_all_programs()
             sys.exit(1)
         self.process_manager = ProcessManager(self.config, self.logger)
         self.control_shell = ControlShell(self)

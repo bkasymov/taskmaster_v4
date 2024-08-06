@@ -85,7 +85,7 @@ class ConfigParser:
 			                                                    stderr=subprocess.DEVNULL).returncode == 0
 		
 		try:
-			sub_commands = cmd.replace('&&', ';;').replace('&', ';;').replace('|').replace('||', ';;').split(';;')
+			sub_commands = cmd.replace('&&', ';;').replace('||', ';;').split(';;')
 			
 			for sub_cmd in sub_commands:
 				tokens = shlex.split(sub_cmd.strip())
@@ -103,7 +103,7 @@ class ConfigParser:
 		return Schema({
 			"programs": {
 				str: {
-					"cmd": And(str),
+					"cmd": And(str, cls.validate_command),
 					Optional("numprocs"): And(int, lambda n: n > 0),
 					Optional("umask"): And(str, lambda s: len(s) == 3 and s.isdigit()),
 					Optional("workingdir"): And(str, cls.validate_directory),
