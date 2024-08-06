@@ -4,6 +4,8 @@ import os
 import signal
 from typing import Dict, Any, Tuple, List
 import subprocess
+import shlex
+
 
 class ConfigValidationError(Exception):
 	pass
@@ -51,13 +53,35 @@ class ConfigParser:
 		return sig
 	
 	@staticmethod
-	def validate_command(cmd: str) -> str:
-		command = cmd.split()[0]
+	def get_system_commands():
+		system_paths = ['/usr/bin', '/bin', '/usr/local/bin']
+		commands = set()
+		for path in system_paths:
+			if os.path.exists(path):
+				commands.update(os.listdir(path))
+		return commands
+	
+	@classmethod
+	def validate_command(cls, cmd: str) -> str:
+		system_commands = cls.get_system_commands()
+		
+		def is_valid_command(command):
+			return command in system_commands or subprocess.run(['which', command], stdout=subprocess.DEVNULL,
+			                                                    stderr=subprocess.DEVNULL).returncode == 0
+		
 		try:
-			subprocess.run(["which", command], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-		except subprocess.CalledProcessError:
-			raise ConfigValidationError(f"Command not found: {command}")
-		return cmd
+			sub_commands = cmd.replace('&&', ';;').replace('||', ';;').split(';;')
+			
+			for sub_cmd in sub_commands:
+				tokens = shlex.split(sub_cmd.strip())
+				if tokens:
+					main_command = tokens[0]
+					if not is_valid_command(main_command):
+						raise ConfigValidationError(f"Command not found: {main_command}")
+			
+			return cmd
+		except ValueError as e:
+			raise ConfigValidationError(f"Invalid command syntax: {e}")
 	
 	@classmethod
 	def get_schema(cls) -> Schema:
