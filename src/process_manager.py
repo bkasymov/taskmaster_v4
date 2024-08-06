@@ -80,6 +80,7 @@ class ProcessManager:
 	def stop_program(self, program_name: str):
 		if program_name not in self.processes:
 			self.logger.warning(f"Process with {program_name} is not running")
+			print(f"Process with {program_name} is not running")
 			return
 		
 		program_config = self.config["programs"][program_name]
@@ -96,6 +97,7 @@ class ProcessManager:
 			process_info.update_status()
 		
 		del self.processes[program_name]
+		print(f"Stopped program: {program_name}")
 		self.logger.info(f"Stopped program: {program_name}")
 	
 	def restart_all_programs(self):
