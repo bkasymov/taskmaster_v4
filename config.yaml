@@ -1,6 +1,6 @@
 programs:
   echo_test:
-    cmd: "ech 'Hello, Taskmaster!'"
+    cmd: "echo 'Hello, Taskmaster!'"
     numprocs: 2
     umask: "022"
     workingdir: .
