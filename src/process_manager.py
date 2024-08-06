@@ -45,10 +45,14 @@ class ProcessManager:
 			self.logger.warning(f"Program {program_name} not found in config")
 			return
 		program_config = self.config["programs"][program_name]
-		self.processes[program_name] = [
-			self._create_process_info(program_name, program_config)
-			for _ in range(program_config["numprocs"])
-		]
+		num_processes = program_config["numprocs"]
+		
+		process_list = []
+		for _ in range(num_processes):
+			process_info = self._create_process_info(program_name, program_config)
+			process_list.append(process_info)
+
+		self.processes[program_name] = process_list
 		self.logger.info(f"Started program: {program_name}")
 	
 	def _create_process_info(self, program_name: str, program_config: dict) -> ProcessInfo:

@@ -16,7 +16,7 @@ programs:
 #programs:
   sleep_test:
     cmd: "sleep 60"
-    numprocs: 1
+    numprocs: 4
     umask: "022"
     workingdir: .
     autostart: false
