@@ -1,6 +1,6 @@
-## Taskmaster
+# Taskmaster
 
-Taskmaster is a process supervisor and manager. It allows you to manage and control a number of processes on UNIX-like operating systems.
+Taskmaster is a process supervisor and manager designed for UNIX-like operating systems. It allows you to manage and control multiple processes efficiently.
 
 ## Requirements
 
@@ -9,47 +9,48 @@ Taskmaster is a process supervisor and manager. It allows you to manage and cont
 
 ## Installation
 
-First, you need to install pipenv. Pipenv is a tool that aims to bring the best of all packaging worlds to the Python world. It harnesses Pipfile, pip, and virtualenv into one single command.
+1. Install pipenv:
+   ```bash
+   pip install pipenv
+   ```
 
-You can install pipenv using pip:
+2. Install project dependencies:
+   ```bash
+   pipenv install
+   ```
 
-\`\`\`bash
-pip install pipenv
-\`\`\`
-
-Install the project dependencies:
-
-\`\`\`bash
-pipenv install
-\`\`\`
-
-This will create a new virtual environment and install the dependencies. You can activate the virtual environment using:
-
-\`\`\`bash
-pipenv shell
-\`\`\`
+3. Activate the virtual environment:
+   ```bash
+   pipenv shell
+   ```
 
 ## Running the Project
 
-To run the project, use the following command:
+To run Taskmaster, use the following command:
 
-\`\`\`bash
+```bash
 python src/taskmaster.py config.yaml
-\`\`\`
+```
 
 ## Project Structure
 
-- \`src/taskmaster.py\`: This is the main entry point of the application. It sets up and starts the Taskmaster application.
-- \`src/process_manager.py\`: This file contains the \`ProcessManager\` class which is responsible for starting, stopping and managing processes.
-- \`src/control_shell.py\`: This file contains the \`ControlShell\` class which is responsible for the interactive shell of the Taskmaster.
-- \`src/config_parser.py\`: This file contains the \`ConfigParser\` class which is responsible for parsing the configuration file.
-- \`src/logger.py\`: This file sets up the logger used throughout the application.
-- \`config.yaml\`: This is the configuration file for the Taskmaster. It specifies the programs to be managed.
+- `src/taskmaster.py`: Main entry point of the application.
+- `src/process_manager.py`: Contains the `ProcessManager` class for process management.
+- `src/control_shell.py`: Implements the `ControlShell` class for the interactive shell.
+- `src/config_parser.py`: Houses the `ConfigParser` class for configuration file parsing.
+- `src/logger.py`: Sets up the application-wide logger.
+- `config.yaml`: Configuration file specifying the programs to be managed.
 
 ## Contributing
 
-Contributions are welcome! Please fork the repository and create a pull request with your changes.
+Contributions are welcome! Please follow these steps:
+
+1. Fork the repository
+2. Create a new branch for your feature
+3. Commit your changes
+4. Push to your branch
+5. Create a pull request
 
 ## License
 
-This project is licensed under the terms of the MIT license."
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
